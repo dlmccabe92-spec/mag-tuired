@@ -1,0 +1,17 @@
+import { chromium } from 'playwright-core';
+const CHROME = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+const browser = await chromium.launch({ executablePath: CHROME, headless: true });
+const page = await (await browser.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+const errors = [];
+page.on('pageerror', e => errors.push(e.message));
+await page.goto('https://mag-tuired.vercel.app/game', { waitUntil: 'networkidle' });
+await page.waitForSelector('text=CHOOSE YOUR RACE', { timeout: 30000 });
+await page.click('button:has-text("Hard")');
+await page.click('text=BEGIN');
+await page.waitForSelector('canvas', { timeout: 30000 });
+await page.waitForTimeout(5000);
+const gold = await page.locator('span.text-amber-300').first().innerText();
+console.log('PROD in-game, gold reads:', gold);
+await page.screenshot({ path: '/tmp/magtuired-shots/7-prod.png' });
+console.log(errors.length ? `ERRORS: ${errors.join('; ')}` : 'NO PAGE ERRORS — PROD OK');
+await browser.close();
