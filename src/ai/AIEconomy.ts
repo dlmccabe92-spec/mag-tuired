@@ -8,8 +8,8 @@ import { TILE, ENSNARE_RANGE } from '@/utils/Constants';
 import { dist } from '@/utils/Vector2';
 import { trainUnit, startBuild, upgradeTownHall, research } from '@/simulation/Actions';
 import { playerTier, hasBuilding } from '@/simulation/BuildingManager';
-import { orderGatherTree } from '@/simulation/OrderSystem';
-import { requestPath } from '@/simulation/OrderSystem';
+import { orderGatherTree, requestPath } from '@/simulation/OrderSystem';
+import { ensnaredBy } from '@/simulation/ResourceSystem';
 import { RESEARCH } from '@/simulation/TechTree';
 
 export function ownEntities(state: GameState, pid: number): { workers: Entity[]; army: Entity[]; heroes: Entity[]; buildings: Entity[] } {
@@ -90,10 +90,12 @@ export function economyDecide(state: GameState, pid: number, params: AIParams, b
 
   // 2) assign idle workers
   const mine = findMineNear(state, hall.x, hall.y, 1200);
+  // aos si can only draw gold from an ensnared mine
+  const mineUsable = !!mine && (p.race !== 'aossi' || ensnaredBy(state, mine, pid));
   let goldCount = countGoldWorkers(workers);
   for (const w of workers) {
     if (w.task || w.order.type !== 'idle' || (w.militiaUntil ?? 0) > state.time) continue;
-    if (mine && goldCount < params.goldWorkers) {
+    if (mine && mineUsable && goldCount < params.goldWorkers) {
       w.order = { type: 'gatherMine', mineId: mine.id };
       w.task = { kind: 'toMine', mineId: mine.id, timer: 0 };
       requestPath(state, w, mine.x, mine.y);
@@ -107,7 +109,12 @@ export function economyDecide(state: GameState, pid: number, params: AIParams, b
   // helper to queue a build
   const tryBuild = (defId: string, nx: number, ny: number): boolean => {
     const builder = workers.find(w =>
-      w.order.type !== 'build' && w.task?.kind !== 'building' && (w.militiaUntil ?? 0) < state.time);
+      !w.hidden &&
+      w.order.type !== 'build' &&
+      w.task?.kind !== 'building' &&
+      w.task?.kind !== 'inMine' &&
+      w.task?.kind !== 'channelMine' &&
+      (w.militiaUntil ?? 0) < state.time);
     if (!builder) return false;
     const spot = findBuildSpot(state, defId, nx, ny);
     if (!spot) return false;
@@ -144,6 +151,14 @@ export function economyDecide(state: GameState, pid: number, params: AIParams, b
       tryBuild(w.id, baseX + (Math.random() - 0.5) * 220, baseY + (Math.random() - 0.5) * 220);
     }
     break; // one core building at a time
+  }
+
+  // 4b) additional war buildings when gold piles up
+  const racksId = race.buildings.find(b => b.role === 'barracks')!.id;
+  const racksCount = buildings.filter(b => b.bldDef?.role === 'barracks').length;
+  if (racksCount >= 1 && racksCount < 3 && p.gold > 800 && p.lumber > 100 &&
+    !isConstructingOrQueued(state, pid, 'barracks')) {
+    tryBuild(racksId, baseX + (Math.random() - 0.5) * 260, baseY + (Math.random() - 0.5) * 260);
   }
 
   // 5) towers (hard)

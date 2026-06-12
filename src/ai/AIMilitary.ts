@@ -124,8 +124,10 @@ export function militaryDecide(
 
   if (ms.mode === 'creep') {
     const camp = state.camps[ms.creepCampId];
-    if (!camp || camp.aliveIds.length === 0) {
+    // give up on a camp after 75s (unreachable or too strong)
+    if (!camp || camp.aliveIds.length === 0 || now - ms.lastOrderAt > 75) {
       ms.mode = 'build';
+      ms.lastOrderAt = now;
       for (const u of [...army, ...heroes]) issueMove(state, u, baseX, baseY, false);
     }
     return;

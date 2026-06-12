@@ -4,7 +4,7 @@ import type { GameState } from './GameState';
 import { TILE } from '@/utils/Constants';
 import { dist, norm } from '@/utils/Vector2';
 import { lineWalkable } from '@/utils/Pathfinding';
-import { isRooted, isStunned, effectiveSpeed, isEnemy, canTarget } from './CombatSystem';
+import { isRooted, isStunned, effectiveSpeed, isEnemy, canTarget, edgeGap } from './CombatSystem';
 import { pickupItem } from './HeroSystem';
 
 const ARRIVE_DIST = 6;
@@ -144,7 +144,7 @@ export function orderTick(state: GameState, e: Entity, dt: number) {
   if (e.targetId && (o.type === 'attack' || o.type === 'idle' || o.type === 'attackmove' || o.type === 'hold' || o.type === 'patrol')) {
     const t = state.store.get(e.targetId);
     if (t && isEnemy(e, t) && canTarget(e, t, now)) {
-      const gap = dist(e.x, e.y, t.x, t.y) - t.radius - e.radius;
+      const gap = edgeGap(e, t);
       if (gap > e.attackRange) {
         if (o.type === 'hold') {
           e.targetId = 0; // hold position: don't chase

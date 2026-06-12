@@ -1,9 +1,21 @@
 // Damage model, target acquisition, attack execution, caster auto-spells.
 import type { Entity, AttackType, Buff } from '@/game/types';
 import type { GameState } from './GameState';
-import { DAMAGE_MATRIX, armorMult, AGGRO_SCAN_RANGE, PILLAGE_GOLD } from '@/utils/Constants';
+import { DAMAGE_MATRIX, armorMult, AGGRO_SCAN_RANGE, PILLAGE_GOLD, TILE } from '@/utils/Constants';
 import { dist } from '@/utils/Vector2';
 import { killEntity, heroAttrTotals } from './UnitManager';
+
+// distance from a's edge to b's edge; buildings/mines measured to their footprint rect
+export function edgeGap(a: Entity, b: Entity): number {
+  if (b.etype === 'building' || b.etype === 'mine') {
+    const size = (b.bldDef?.size ?? 3) * TILE;
+    const x0 = (b.homeX ?? 0) * TILE, y0 = (b.homeY ?? 0) * TILE;
+    const cx = Math.max(x0, Math.min(a.x, x0 + size));
+    const cy = Math.max(y0, Math.min(a.y, y0 + size));
+    return dist(a.x, a.y, cx, cy) - a.radius;
+  }
+  return dist(a.x, a.y, b.x, b.y) - a.radius - b.radius;
+}
 
 export function isStunned(e: Entity, now: number): boolean {
   return e.buffs.some(b => (b.stun || b.sleep) && b.until > now);
@@ -211,7 +223,7 @@ export function combatTick(state: GameState, e: Entity, dt: number) {
   }
   if (!target) return;
 
-  const d = dist(e.x, e.y, target.x, target.y) - target.radius - e.radius;
+  const d = edgeGap(e, target);
   const inRange = d <= e.attackRange;
   if (inRange && e.cdTimer <= 0) {
     // face & strike (attacking breaks stealth/invisibility)

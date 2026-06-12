@@ -1,29 +1,18 @@
 'use client';
-// In-game HUD overlay: top resource bar, bottom panel (minimap / info / command card), toasts.
-import { RefObject } from 'react';
+// In-game HUD overlay: top resource bar, bottom panel (minimap slot / info / command card), toasts.
 import type { UISnapshot } from '@/game/types';
 import { HeroPanel } from './HeroPanel';
 import { Tooltip } from './Tooltip';
 
-export function HUD({ snap, minimapRef, onCommand, onMinimap, onSelect }: {
+export function HUD({ snap, onCommand, onSelect }: {
   snap: UISnapshot;
-  minimapRef: RefObject<HTMLCanvasElement | null>;
   onCommand: (id: string) => void;
-  onMinimap: (nx: number, ny: number, button: number) => void;
   onSelect: (id: number) => void;
 }) {
   const tributeColor = snap.tribute === 'none' ? 'text-emerald-400'
     : snap.tribute === 'low' ? 'text-yellow-400' : 'text-red-400';
   const tributeLabel = snap.tribute === 'none' ? 'No Tribute'
     : snap.tribute === 'low' ? 'Low Tribute' : 'High Tribute';
-
-  const handleMinimapMouse = (ev: React.MouseEvent<HTMLCanvasElement>) => {
-    ev.preventDefault();
-    const r = ev.currentTarget.getBoundingClientRect();
-    const nx = (ev.clientX - r.left) / r.width;
-    const ny = (ev.clientY - r.top) / r.height;
-    onMinimap(nx, ny, ev.button);
-  };
 
   return (
     <>
@@ -56,15 +45,8 @@ export function HUD({ snap, minimapRef, onCommand, onMinimap, onSelect }: {
 
       {/* bottom panel */}
       <div className="absolute bottom-0 left-0 right-0 z-20 flex h-[212px] items-stretch gap-2 border-t border-stone-800 bg-stone-950/90 p-2">
-        {/* minimap */}
-        <canvas
-          ref={minimapRef}
-          width={196}
-          height={196}
-          className="h-[196px] w-[196px] cursor-pointer rounded border border-stone-700"
-          onMouseDown={handleMinimapMouse}
-          onContextMenu={e => e.preventDefault()}
-        />
+        {/* minimap slot (canvas overlays here from GameRoot) */}
+        <div className="h-[196px] w-[196px] shrink-0" />
 
         {/* info panel */}
         <div className="flex min-w-0 flex-1 flex-col rounded border border-stone-800 bg-stone-900/60 p-2">

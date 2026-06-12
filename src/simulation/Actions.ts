@@ -82,9 +82,18 @@ export function startBuild(state: GameState, worker: Entity, bldId: string, tx: 
   }
   p.gold -= def.gold;
   p.lumber -= def.lumber;
-  worker.task = undefined;
+  // pull the worker out of a mine if needed
+  if (worker.hidden) {
+    if (worker.task?.kind === 'inMine' && worker.task.mineId) {
+      const mine = state.store.get(worker.task.mineId);
+      if (mine) mine.minersInside = Math.max(0, (mine.minersInside ?? 0) - 1);
+    }
+    worker.hidden = false;
+  }
   worker.targetId = 0;
   worker.order = { type: 'build', bldId, tx, ty };
+  worker.task = { kind: 'toBuild', timer: 0 }; // movable task; buildTaskTick handles arrival
+  worker.carry = undefined;
   requestPath(state, worker, (tx + def.size / 2) * TILE, (ty + def.size / 2) * TILE);
   return OK;
 }

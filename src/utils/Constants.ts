@@ -10,7 +10,7 @@ export const START_LUMBER = 150;
 export const MINE_GOLD = 12500;
 export const GOLD_PER_TRIP = 10;
 export const MINE_TIME = 1.0;       // seconds inside mine
-export const CHANNEL_GOLD_RATE = 8; // gold per second per channeling/inside worker
+export const CHANNEL_GOLD_RATE = 2.5; // gold per second per channeling/inside worker (~walk-mining parity)
 export const MAX_MINE_WORKERS = 5;
 export const LUMBER_PER_TRIP = 10;
 export const CHOP_RATE = 1.25;      // lumber per second while chopping
@@ -87,7 +87,7 @@ export const BLIGHT_RADIUS = 230; // px around sluagh buildings
 export const SLUAGH_BLIGHT_REGEN = 1.5; // hp/s on blight
 export const FAIRY_WELL_REGEN = 4;      // hp/s near Tobar na Si
 export const FAIRY_WELL_MANA = 1.2;
-export const ENSNARE_RANGE = 224; // px: Si town hall to mine for auto-harvest
+export const ENSNARE_RANGE = 250; // px: Si town hall to mine for auto-harvest
 
 export const AGGRO_SCAN_RANGE = 210;  // auto-acquire range
 export const UPGRADE_COSTS = [

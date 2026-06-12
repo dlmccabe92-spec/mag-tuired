@@ -50,7 +50,7 @@ export const AI_PARAMS: Record<Difficulty, AIParams> = {
   hard: {
     decideInterval: 0.5,
     workerTarget: 16, goldWorkers: 5,
-    armyFoodAttack: 22, firstAttackTime: 240, attackCooldown: 75,
+    armyFoodAttack: 28, firstAttackTime: 300, attackCooldown: 75,
     retreatLossPct: 0.5,
     useAbilities: true, heroRetreatHpPct: 22,
     expand: true, expandMainGoldBelow: 6000,

@@ -3,7 +3,6 @@ import type { Entity, AbilityDef, HeroState } from '@/game/types';
 import type { GameState } from './GameState';
 import { getHeroDef } from '@/data/races';
 import { ITEMS } from '@/data/items';
-import { SUMMONS } from '@/data/creeps';
 import { HERO_XP_THRESHOLDS, HERO_MAX_LEVEL, TILE } from '@/utils/Constants';
 import { dist } from '@/utils/Vector2';
 import { refreshHeroStats, spawnUnit, killEntity } from './UnitManager';

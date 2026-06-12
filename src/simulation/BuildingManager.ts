@@ -36,14 +36,18 @@ export function buildTaskTick(state: GameState, e: Entity) {
   const def = getBldDef(o.bldId);
   const cx = (o.tx + def.size / 2) * TILE;
   const cy = (o.ty + def.size / 2) * TILE;
-  const gap = dist(e.x, e.y, cx, cy) - def.size * TILE * 0.5 - e.radius;
   if (e.task?.kind === 'building') {
     // ensure assigned building still alive
     const b = e.task.buildingId ? state.store.get(e.task.buildingId) : undefined;
     if (!b || !b.constructing) { e.task = undefined; clearOrder(e); }
     return;
   }
-  if (gap > 20) {
+  // distance to the placement footprint rect
+  const x0 = o.tx * TILE, y0 = o.ty * TILE, sz = def.size * TILE;
+  const px = Math.max(x0, Math.min(e.x, x0 + sz));
+  const py = Math.max(y0, Math.min(e.y, y0 + sz));
+  const gap = dist(e.x, e.y, px, py) - e.radius;
+  if (gap > 24) {
     if (!e.path || e.pathIdx >= (e.path?.length ?? 0)) {
       if (e.repath <= state.time) { e.repath = state.time + 1; requestPath(state, e, cx, cy); }
     }

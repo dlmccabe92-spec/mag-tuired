@@ -45,16 +45,33 @@ function GameView({ config, onRestart, onMenu }: {
   }, [config]);
 
   const onCommand = useCallback((id: string) => gameRef.current?.handleCommand(id), []);
-  const onMinimap = useCallback((nx: number, ny: number, b: number) => gameRef.current?.minimapInteract(nx, ny, b), []);
   const onSelect = useCallback((id: number) => gameRef.current?.selectEntity(id), []);
+  const onMinimapMouse = useCallback((ev: React.MouseEvent<HTMLCanvasElement>) => {
+    ev.preventDefault();
+    const r = ev.currentTarget.getBoundingClientRect();
+    gameRef.current?.minimapInteract(
+      (ev.clientX - r.left) / r.width,
+      (ev.clientY - r.top) / r.height,
+      ev.button,
+    );
+  }, []);
 
   return (
     <div className="fixed inset-0 overflow-hidden bg-black">
       <div ref={containerRef} className="absolute inset-0 bottom-[212px] top-0">
         <canvas ref={canvasRef} className="block h-full w-full cursor-crosshair" />
       </div>
+      {/* minimap canvas lives outside HUD so it exists before the first snapshot */}
+      <canvas
+        ref={minimapRef}
+        width={196}
+        height={196}
+        className="absolute bottom-2 left-2 z-30 h-[196px] w-[196px] cursor-pointer rounded border border-stone-700 bg-stone-950"
+        onMouseDown={onMinimapMouse}
+        onContextMenu={e => e.preventDefault()}
+      />
       {snap && (
-        <HUD snap={snap} minimapRef={minimapRef} onCommand={onCommand} onMinimap={onMinimap} onSelect={onSelect} />
+        <HUD snap={snap} onCommand={onCommand} onSelect={onSelect} />
       )}
       {snap?.paused && !snap.gameOver && (
         <PauseMenu

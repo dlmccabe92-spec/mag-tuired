@@ -7,6 +7,7 @@ import {
 } from '@/utils/Constants';
 import { dist } from '@/utils/Vector2';
 import { requestPath, clearOrder } from './OrderSystem';
+import { edgeGap } from './CombatSystem';
 import { killEntity } from './UnitManager';
 
 function nearestDropoff(state: GameState, e: Entity, res: 'gold' | 'lumber'): Entity | null {
@@ -23,7 +24,7 @@ function nearestDropoff(state: GameState, e: Entity, res: 'gold' | 'lumber'): En
   return best;
 }
 
-function ensnaredBy(state: GameState, mine: Entity, owner: number): boolean {
+export function ensnaredBy(state: GameState, mine: Entity, owner: number): boolean {
   if (state.players[owner]?.race !== 'aossi') return false;
   let found = false;
   state.store.forEach(b => {
@@ -73,8 +74,8 @@ export function resourceTick(state: GameState, e: Entity, dt: number) {
     case 'toMine': {
       const mine = task.mineId ? state.store.get(task.mineId) : undefined;
       if (!mine || (mine.goldLeft ?? 0) <= 0) { e.task = undefined; clearOrder(e); return; }
-      const gap = dist(e.x, e.y, mine.x, mine.y) - mine.radius - e.radius;
-      if (gap > 12) {
+      const gap = edgeGap(e, mine);
+      if (gap > 24) {
         if (!e.path || e.pathIdx >= (e.path?.length ?? 0)) {
           if (e.repath <= now) { e.repath = now + 1; requestPath(state, e, mine.x, mine.y); }
         }
@@ -82,14 +83,21 @@ export function resourceTick(state: GameState, e: Entity, dt: number) {
       }
       const race = state.players[e.owner]?.race;
       if (race === 'aossi') {
-        if (ensnaredBy(state, mine, e.owner) && (mine.minersInside ?? 0) < MAX_MINE_WORKERS) {
+        if (!ensnaredBy(state, mine, e.owner)) {
+          if (e.owner === 0) {
+            state.bus.emit({ type: 'toast', msg: 'This mine is not ensnared — build a Sí (town hall) beside it first.' });
+          }
+          e.task = undefined;
+          clearOrder(e);
+          return;
+        }
+        if ((mine.minersInside ?? 0) < MAX_MINE_WORKERS) {
           mine.minersInside = (mine.minersInside ?? 0) + 1;
           e.hidden = true;
           e.task = { kind: 'inMine', mineId: mine.id, timer: 0 };
           e.x = mine.x; e.y = mine.y;
-        } else {
-          // wait beside the mine until a slot opens (or no ensnaring hall)
         }
+        // else wait beside the mine until a slot opens
         return;
       }
       if (race === 'sluagh') {
@@ -194,8 +202,8 @@ export function resourceTick(state: GameState, e: Entity, dt: number) {
     case 'returning': {
       const drop = nearestDropoff(state, e, e.carry?.type === 'gold' ? 'gold' : 'lumber');
       if (!drop) { return; }
-      const gap = dist(e.x, e.y, drop.x, drop.y) - drop.radius - e.radius;
-      if (gap > 14) {
+      const gap = edgeGap(e, drop);
+      if (gap > 24) {
         if (!e.path || e.pathIdx >= (e.path?.length ?? 0)) {
           if (e.repath <= now) { e.repath = now + 1; requestPath(state, e, drop.x, drop.y); }
         }

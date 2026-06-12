@@ -9,7 +9,7 @@ import { heroDecide } from './AIHero';
 
 export class AIController {
   private params: AIParams;
-  private pid = 1;
+  private pid: number;
   private nextDecide = 5; // grace period at game start
   private military: MilitaryState = {
     mode: 'build', attackWaveAt: 0, waveStartFood: 0, creepCampId: -1, lastOrderAt: 0,
@@ -19,13 +19,14 @@ export class AIController {
   private enemyX: number;
   private enemyY: number;
 
-  constructor(state: GameState, difficulty: Difficulty) {
+  constructor(state: GameState, difficulty: Difficulty, pid = 1) {
+    this.pid = pid;
     this.params = AI_PARAMS[difficulty];
     const def = state.map.def;
-    this.baseX = def.starts[1].x * TILE;
-    this.baseY = def.starts[1].y * TILE;
-    this.enemyX = def.starts[0].x * TILE;
-    this.enemyY = def.starts[0].y * TILE;
+    this.baseX = def.starts[pid].x * TILE;
+    this.baseY = def.starts[pid].y * TILE;
+    this.enemyX = def.starts[1 - pid].x * TILE;
+    this.enemyY = def.starts[1 - pid].y * TILE;
     // hard AI cheats
     const p = state.players[this.pid];
     p.gatherMult = this.params.gatherMult;
