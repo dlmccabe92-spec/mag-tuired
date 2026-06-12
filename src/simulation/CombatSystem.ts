@@ -126,6 +126,11 @@ export function dealDamage(state: GameState, source: Entity | null, target: Enti
     state.lastAttackAlert = state.time;
     state.bus.emit({ type: 'underAttack', x: target.x, y: target.y });
   }
+  // record for AI defense triggers
+  if (target.owner === 0 || target.owner === 1) {
+    state.lastDamageAt[target.owner] = state.time;
+    state.lastDamagePos[target.owner] = { x: target.x, y: target.y };
+  }
   // creeps retaliate vs their attacker
   if (source && target.owner === 8 && !target.dead && target.targetId === 0) {
     target.sleeping = false;

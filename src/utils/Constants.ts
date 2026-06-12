@@ -83,7 +83,7 @@ export const CREEP_RESPAWN = 180; // seconds
 // Misc
 export const MILITIA_DURATION = 60;
 export const PILLAGE_GOLD = 3;
-export const BLIGHT_RADIUS = 176; // px around sluagh buildings
+export const BLIGHT_RADIUS = 230; // px around sluagh buildings
 export const SLUAGH_BLIGHT_REGEN = 1.5; // hp/s on blight
 export const FAIRY_WELL_REGEN = 4;      // hp/s near Tobar na Si
 export const FAIRY_WELL_MANA = 1.2;

@@ -75,6 +75,8 @@ export class GameState {
   camps: CreepCamp[] = [];
   winner: number | null = null;
   lastAttackAlert = -99;
+  lastDamageAt: [number, number] = [-99, -99];
+  lastDamagePos: { x: number; y: number }[] = [{ x: 0, y: 0 }, { x: 0, y: 0 }];
   startCamera: { x: number; y: number };
   private sfxLast = new Map<string, number>();
 
